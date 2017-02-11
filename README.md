@@ -1,1 +1,3 @@
-# P4_Advanced_Lane_Lines
+# Advanced Lane Detection
+
+## Self-Driving Cars - NanoDegree @Udacity
