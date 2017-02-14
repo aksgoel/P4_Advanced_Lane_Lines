@@ -1,6 +1,12 @@
 ## Advanced Lane Detection
 ### Self-Driving Cars Nanodegree @Udacity
 
+###Credits
+
+- Udacity: Self-Driving Car Nano Degree
+- OpenCV: http://opencv-python-tutroals.readthedocs.io/en/latest/
+- Vivek Yadav: https://goo.gl/r6SalG
+
 ---
 
 **Advanced Lane Finding Project**
@@ -18,6 +24,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
+[imagea]: ./examples/chessboard.png "Chessboard"
 [image0]: ./examples/original.png "Original"
 [image1]: ./examples/undistorted.png "Undistorted"
 [image2]: ./examples/transform.png "Road Transformed"
@@ -28,76 +35,119 @@ The goals / steps of this project are the following:
 [image7]: ./examples/unwarped.png "Result"
 [video1]: ./project_video.mp4 "Video"
 
-You're reading it!
+###Architecture:
+A brief overview on the computer vision techniques applied:
+![architecture] (https://docs.google.com/drawings/d/17b7_UU4qU-ah_H3Syc5WYYHr3q7R4k_pJ8eMl0hMXKo/pub?w=958&h=1344)
+---
+
 ###Camera Calibration
 
 ####1. Camera Matrix & Distortion Correction:
 
-The code for this step is contained in the first code cell of the IPython notebook located in "./examples/example.ipynb".  
+The code for this step is contained in the fourth and fifth code cell of the IPython notebook located in "./examples/example.ipynb".  
 
 I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
 
 I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result:
 
-![alt text][image1]
+![alt text][imagea]
 
 ###Pipeline (single images)
 
+####Raw Image:
+Raw images like the one below are obtained frame by frame from the video.
+![alt text][image0]
+
 ####1. Distortion-corrected image.
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
+To demonstrate this step, I apply the distortion correction (code cell: ) to one of the test images like this one:
+![alt text][image1]
 
-####2. Combination of color transforms, gradients or other methods to create a thresholded binary image:
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+####2. I then performed a perspective transform to obtain a birds-eye view for the image.
 
-![alt text][image3]
-
-####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
-
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+The code for my perspective transform includes a function `warp_image()` (code cell: ) .  The `warp_image()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose to hardcode the source and destination points in the following manner:
 
 ```
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+img_size = img.shape
+ht_window = np.uint(img_size[0]/1.5)
+hb_window = np.uint(img_size[0])
+c_window = np.uint(img_size[1]/2)
+ctl_window = c_window - .2*np.uint(img_size[1]/2)
+ctr_window = c_window + .2*np.uint(img_size[1]/2)
+cbl_window = c_window - 1*np.uint(img_size[1]/2)
+cbr_window = c_window + 1*np.uint(img_size[1]/2)
+
+src = np.float32([[cbl_window,hb_window],[cbr_window,hb_window],[ctr_window,ht_window],[ctl_window,ht_window]])
+
+dst = np.float32([[0,img_size[0]],[img_size[1],img_size[0]],[img_size[1],0],[0,0]])
 
 ```
 This resulted in the following source and destination points:
 
 | Source        | Destination   |
 |:-------------:|:-------------:|
-| 585, 460      | 320, 0        |
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+| 0, 720      | 0, 720        |
+| 1280, 720      | 1280, 720      |
+| 768, 480     | 1280, 0      |
+| 512, 480      | 0, 0        |
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
 ![alt text][image4]
 
+####3. Combination of color transforms, gradients or other methods to create a thresholded binary image:
+I used a combination of color and gradient thresholds to generate a binary image.  
+
+Example of H, L, S & V color spaces:
+![alt text][image3]
+
+Example output of applied color mask:
+![alt text][image4]
+
+Example output of combined binary images:
+![alt text][image5]
+
+
 ####4. Identified lane-line pixels and fit their positions with a polynomial:
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+For first frame of image, I produced a histogram for the image and searched for the peaks - to identify lanes. I then broke the image in 9 horizontal sections and searched for lane points section by section.
 
-![alt text][image5]
+For consecutive images I reduced my search area to a +/- 100 pixel boundary of existing lane lines.
+
+Outliers: While checking for lines I added the following outlier checks to improve performance:
+- check for existence of lane lines (if no lane lines are found, I fall backed to previous detected lines)
+- minimum average distance between right lane and left lane (must be positive and greater than 600 pixels)
+
+I then fit my lane lines with a 2nd order polynomial kinda like this:
+
+![alt text][image6]
+
+ps: code cell #19 and #20
 
 ####5. Radius of Curvature:
 How:
+After obtaining a polynomial fit for the two lane lines, I calculated the radius of curvature by using the following formula. I further converted this value to meters (From pixels).
 
-I did this in lines # through # in my code in `my_other_file.py`
+```
+left_curverad = ((1 + (2*left_fit[0]*y_eval + left_fit[1])**2)**1.5) /
+np.absolute(2*left_fit[0])
+```
+
+ps: refer code cell #19 and  #20
+
+####5. Vehicle Position:
+How: By comparing the screen center to the midpoint between the two lanes.
+
+ps: refer code cell #19 and  #20
 
 ####6. Marked lanes plotted back down onto the road:
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+How:
 
-![alt text][image6]
+Here is an example of my result on a test image:
+![alt text][image7]
+
+ps: refer code cell #23.  
+
 
 ---
 
@@ -109,6 +159,8 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 ###Discussion
 
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+####1. Problems / issues you faced in your implementation of this project:
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+####2. Where will your pipeline likely fail?  
+
+####3. What could you do to make it more robust?
