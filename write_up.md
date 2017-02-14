@@ -92,7 +92,7 @@ This resulted in the following source and destination points:
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
-![alt text][image4]
+![alt text][image2]
 
 ####3. Combination of color transforms, gradients or other methods to create a thresholded binary image:
 I used a combination of color and gradient thresholds to generate a binary image.  
@@ -141,7 +141,7 @@ ps: refer code cell #19 and  #20
 
 ####6. Marked lanes plotted back down onto the road:
 
-How:
+How: I un-warped (re-applied transform using inverse values for src and dst) the detected lane image, and added it back to original image by performing an added weight function.
 
 Here is an example of my result on a test image:
 ![alt text][image7]
@@ -160,7 +160,20 @@ ps: refer code cell #23.
 ###Discussion
 
 ####1. Problems / issues you faced in your implementation of this project:
+- shadows: resolved by applying AND with gradient threshold in V colorspace
+- sobel direction: I spent a lot of time trying to filter my images using sobel direction as seen in code cell #14, #15, #16. I decided to give up on this, as I recieved fair results without this filter.
+- managing outliers such as no lane found
 
-####2. Where will your pipeline likely fail?  
+####2. Where will your pipeline likely fail?
+- 1. multiple lane lines detected
+- 2. no lane line detected for > 1-3 frames
+- 3. steep curves (as i am searching in limited space)
 
 ####3. What could you do to make it more robust?
+- add a low pass average filter, to average the lane lines from multiple frames
+- add additional outlier checks:
+    - 1. check for number of lane lines detected, and choose most optimal
+    - 2. check for distance of individual lane from center of image
+    - 3. check for curve fit (change in percentage) between lane of consecutive frames
+    - 4. improve image preprocessing of road color (dark and light patches on road)
+    - 5. increase field of search for high curved areas
