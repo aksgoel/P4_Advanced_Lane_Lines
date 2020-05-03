@@ -1,6 +1,6 @@
 # Advanced Lane Detection
 
-##Self-Driving Car Nanodegree @Udacity
+## Self-Driving Car Nanodegree @Udacity
 
 ### Project Video:
 Here's a link to my [project video](https://youtu.be/mrCgdITpRts)
